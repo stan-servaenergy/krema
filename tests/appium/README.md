@@ -763,9 +763,14 @@ pipelined build compares D-Bus object paths instead: at each step of the
 walk, and when an index has shifted it finds the child by object path, so
 a match is dropped only when its object has left the tree.
 
-Geometry. On Wayland, AT-SPI rects (`element.rect`, `Rect.of(element)`) are
-relative to the element's surface. The surface's screen position comes from
-KWin: the krema window whose client size equals the surface's AT-SPI frame.
+Geometry. On Wayland, AT-SPI rects (`element.rect`, `Rect.of(element)`) can
+include the output offset in both the surface's frame and its children.
+Subtract the AT-SPI frame origin to get surface-local coordinates, then add
+KWin's client origin to get screen coordinates. The surface's screen position
+comes from the krema window whose client size equals the AT-SPI frame.
+Comparing a child's x coordinate with KWin's client x is insufficient: a
+secondary Settings sidebar entry can start left of that client x because
+its accessible coordinates omit the window's placement offset.
 
 libatspi can retain an interface list read while a Qt popup was hidden.
 If that list lacks Component, geometry reads can keep failing after the

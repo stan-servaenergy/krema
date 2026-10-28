@@ -358,15 +358,15 @@ class Krema:
         return None
 
     def to_screen(self, rect: Rect, surface: str = "dock") -> Rect:
-        """Convert a surface-local AT-SPI rect to global screen coordinates.
+        """Convert an AT-SPI rect to global screen coordinates.
 
-        Secondary-output Settings children already include their global x
-        coordinate; primary-output and dock/preview children remain local.
+        Qt can include the output offset in both the frame and its children.
+        Subtract the accessible frame origin before adding KWin's client
+        origin, including the window's placement and decoration offset.
         """
         origin = wait_until(lambda: self.surface_rect(surface), timeout=5, message=f"{surface} surface geometry")
-        if surface == "settings" and origin.x >= env.SCREEN_WIDTH and rect.x >= origin.x:
-            return rect
-        return Rect(origin.x + rect.x, origin.y + rect.y, rect.width, rect.height)
+        frame = Rect.of(self.wait_for(self._frame_xpath(surface)))
+        return Rect(origin.x + rect.x - frame.x, origin.y + rect.y - frame.y, rect.width, rect.height)
 
     def screen_rect(self, element: WebElement, surface: str = "dock") -> Rect:
         return self.to_screen(Rect.of(element), surface)
